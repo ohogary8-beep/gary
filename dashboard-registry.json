@@ -1,0 +1,40 @@
+{
+  "site": {
+    "name": "亚马逊运营三部",
+    "subtitle": "数据看板中心",
+    "timezone": "Asia/Shanghai",
+    "notificationChannel": "钉钉"
+  },
+  "categories": [
+    "全部看板",
+    "广告看板",
+    "库存看板",
+    "运营复盘",
+    "产品管理",
+    "Skill沉淀",
+    "其他看板"
+  ],
+  "dashboards": [
+    {
+      "id": "monthly-review",
+      "title": "运营月度复盘",
+      "description": "经营、广告、退款与库存一体化复盘",
+      "category": "运营复盘",
+      "owner": "周锋润",
+      "version": "V1.0",
+      "type": "HTML 看板",
+      "period": "2026年7月",
+      "updatedAt": "2026-09-28T13:54:05+08:00",
+      "url": "dashboards/monthly-review/index.html",
+      "status": "ready",
+      "schedule": {
+        "enabled": false,
+        "cadence": "monthly",
+        "days": [5],
+        "time": "09:00",
+        "timezone": "Asia/Shanghai",
+        "dingTalk": false
+      }
+    }
+  ]
+}

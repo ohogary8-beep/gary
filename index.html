@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>数据看板中心</title>
+  <style>
+    :root {
+      --sidebar:#171827;
+      --sidebar-soft:#222338;
+      --violet:#6553d7;
+      --violet-2:#7b68ee;
+      --violet-soft:#eeebff;
+      --canvas:#f4f5f9;
+      --card:#fff;
+      --ink:#202233;
+      --muted:#7d8192;
+      --line:#e7e8ef;
+      --green:#36b58a;
+      --green-soft:#e8f8f2;
+      --orange:#ff8e51;
+      --orange-soft:#fff0e6;
+      --blue:#4b84d8;
+      --shadow:0 10px 28px rgba(35,35,60,.06);
+    }
+    * { box-sizing:border-box; }
+    html, body { margin:0; min-height:100%; font-family:Inter,"PingFang SC","Microsoft YaHei",sans-serif; color:var(--ink); background:var(--canvas); }
+    button, input, select { font:inherit; }
+    button, a { -webkit-tap-highlight-color:transparent; }
+    .app { min-height:100vh; display:grid; grid-template-columns:258px minmax(0,1fr); }
+    .sidebar { position:sticky; top:0; height:100vh; padding:18px 12px; color:#d7d8e5; background:var(--sidebar); overflow-y:auto; }
+    .brand { display:flex; align-items:center; gap:12px; min-height:48px; padding:0 10px 18px; border-bottom:1px solid rgba(255,255,255,.07); }
+    .brand-mark { width:38px; height:38px; display:grid; place-items:center; border-radius:11px; color:#fff; font-weight:800; background:linear-gradient(145deg,var(--violet-2),#5141bf); box-shadow:0 7px 18px rgba(101,83,215,.3); }
+    .brand strong { display:block; color:#fff; font-size:15px; }
+    .brand span { display:block; margin-top:3px; color:#8f93a8; font-size:11px; }
+    .side-label { padding:22px 12px 9px; color:#777b91; font-size:11px; letter-spacing:.08em; }
+    .side-nav { display:grid; gap:5px; }
+    .side-item { width:100%; border:0; display:flex; align-items:center; gap:10px; padding:11px 12px; color:#aeb1c2; background:transparent; border-radius:9px; cursor:pointer; text-align:left; }
+    .side-item:hover { color:#fff; background:rgba(255,255,255,.05); }
+    .side-item.active { color:#fff; background:linear-gradient(135deg,#6956df,#5948c8); box-shadow:0 8px 18px rgba(69,53,170,.25); }
+    .side-icon { width:22px; height:22px; display:grid; place-items:center; border-radius:7px; font-size:13px; background:rgba(255,255,255,.07); }
+    .side-item.active .side-icon { background:rgba(255,255,255,.14); }
+    .side-count { margin-left:auto; min-width:22px; padding:2px 6px; color:#8d91a5; background:rgba(255,255,255,.05); border-radius:999px; font-size:10px; text-align:center; }
+    .side-item.active .side-count { color:#fff; }
+    .sidebar-note { margin:22px 8px 0; padding:13px; border:1px solid rgba(255,255,255,.07); border-radius:10px; background:rgba(255,255,255,.03); color:#979bae; font-size:11px; line-height:1.7; }
+    .main { min-width:0; }
+    .topbar { height:66px; display:flex; align-items:center; gap:18px; padding:0 30px; background:#fff; border-bottom:1px solid var(--line); }
+    .breadcrumb { color:#a0a3b1; font-size:13px; white-space:nowrap; }
+    .breadcrumb b { margin-left:8px; color:var(--ink); }
+    .top-actions { margin-left:auto; display:flex; align-items:center; gap:10px; }
+    .search { width:min(330px,32vw); height:40px; display:flex; align-items:center; gap:9px; padding:0 13px; background:#f6f7fa; border:1px solid #e7e8ef; border-radius:12px; }
+    .search svg { flex:0 0 auto; color:#9ca0b1; }
+    .search input { width:100%; border:0; outline:0; background:transparent; color:var(--ink); font-size:13px; }
+    .btn { min-height:38px; border:1px solid var(--line); border-radius:10px; padding:0 14px; background:#fff; color:#535768; cursor:pointer; font-weight:650; }
+    .btn:hover { border-color:#c9c5ef; color:var(--violet); }
+    .btn.primary { border-color:var(--violet); color:#fff; background:linear-gradient(135deg,var(--violet-2),#5947cc); box-shadow:0 7px 14px rgba(101,83,215,.18); }
+    .avatar { width:36px; height:36px; display:grid; place-items:center; border-radius:50%; color:#fff; background:var(--violet); font-weight:800; font-size:12px; }
+    .content { padding:32px 30px 54px; }
+    .headline { display:flex; align-items:flex-start; justify-content:space-between; gap:20px; }
+    h1 { margin:0; font-size:24px; letter-spacing:-.02em; }
+    .count-pill { display:inline-block; margin-left:9px; padding:4px 9px; color:var(--violet); background:var(--violet-soft); border-radius:999px; font-size:12px; vertical-align:middle; }
+    .subline { margin-top:8px; color:var(--muted); font-size:13px; }
+    .summary { display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end; }
+    .summary-chip { padding:9px 12px; border:1px solid var(--line); border-radius:10px; background:#fff; color:#676b7d; font-size:12px; }
+    .summary-chip b { margin-right:4px; color:var(--ink); font-size:14px; }
+    .tabs-row { margin:26px 0 22px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+    .tab { border:1px solid var(--line); padding:8px 15px; border-radius:999px; background:#fff; color:#666a7b; cursor:pointer; }
+    .tab:hover, .tab.active { color:var(--violet); border-color:#cfc9f5; background:var(--violet-soft); }
+    .sort-wrap { margin-left:auto; display:flex; align-items:center; gap:8px; }
+    .sort-wrap select { height:36px; border:1px solid var(--line); border-radius:9px; padding:0 28px 0 10px; color:#666a7b; background:#fff; }
+    .view-btn { width:36px; height:36px; border:1px solid var(--line); border-radius:9px; background:#fff; color:#9296a7; cursor:pointer; }
+    .view-btn.active { color:var(--violet); border-color:#d5cff8; background:var(--violet-soft); }
+    .cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:18px; }
+    .cards.list { grid-template-columns:1fr; }
+    .dashboard-card { min-height:268px; display:flex; flex-direction:column; padding:20px; border:1px solid #e9eaf0; border-radius:16px; background:var(--card); box-shadow:var(--shadow); transition:.18s ease; }
+    .dashboard-card:hover { transform:translateY(-2px); border-color:#d8d3f7; box-shadow:0 14px 32px rgba(39,37,73,.1); }
+    .card-head { display:flex; align-items:flex-start; gap:12px; }
+    .card-icon { width:46px; height:46px; flex:0 0 auto; display:grid; place-items:center; border-radius:13px; color:var(--orange); background:var(--orange-soft); }
+    .card-icon svg { width:25px; }
+    .card-title { min-width:0; flex:1; }
+    .card-title h2 { margin:1px 0 7px; font-size:16px; line-height:1.35; }
+    .badges { display:flex; gap:6px; flex-wrap:wrap; }
+    .badge { display:inline-flex; align-items:center; gap:4px; padding:3px 7px; border-radius:999px; font-size:10px; font-weight:700; }
+    .badge.version { color:var(--green); background:var(--green-soft); }
+    .badge.ready { color:#4a77bd; background:#edf4ff; }
+    .card-desc { margin:15px 0 16px; color:#8a8e9f; font-size:12px; line-height:1.7; min-height:40px; }
+    .meta { display:flex; gap:7px; flex-wrap:wrap; }
+    .meta span { display:inline-flex; align-items:center; gap:5px; padding:5px 8px; border-radius:6px; color:#666b7c; background:#f6f7fa; font-size:11px; }
+    .schedule-box { margin-top:14px; display:grid; grid-template-columns:1fr auto; gap:8px 12px; align-items:center; padding:11px 12px; border:1px solid #ececf2; border-radius:10px; background:#fbfbfd; }
+    .schedule-label { color:#8a8e9e; font-size:10px; }
+    .schedule-value { color:#45495a; font-size:12px; font-weight:700; }
+    .schedule-state { grid-row:1/3; grid-column:2; display:inline-flex; align-items:center; gap:5px; color:#a06b3a; font-size:11px; }
+    .schedule-state.active { color:var(--green); }
+    .dot { width:7px; height:7px; border-radius:50%; background:currentColor; box-shadow:0 0 0 3px currentColor; opacity:.65; }
+    .card-foot { margin-top:auto; padding-top:16px; display:flex; align-items:center; gap:10px; border-top:1px solid #eeeeF3; }
+    .owner { display:flex; align-items:center; gap:8px; min-width:0; color:#565a6b; font-size:12px; }
+    .owner .mini { width:27px; height:27px; display:grid; place-items:center; border-radius:50%; color:#fff; background:linear-gradient(135deg,#607fd7,#6b54d9); font-size:10px; font-weight:800; }
+    .card-actions { margin-left:auto; display:flex; gap:6px; }
+    .icon-btn { width:34px; height:34px; display:grid; place-items:center; border:1px solid transparent; border-radius:9px; color:#8e92a2; background:transparent; cursor:pointer; }
+    .icon-btn:hover { color:var(--violet); background:var(--violet-soft); }
+    .open-btn { text-decoration:none; }
+    .empty-card { min-height:268px; display:grid; place-items:center; border:1px dashed #d7d6e4; border-radius:16px; color:#969aaa; background:rgba(255,255,255,.48); cursor:pointer; }
+    .empty-card:hover { color:var(--violet); border-color:#bab2ee; background:#f8f6ff; }
+    .empty-inner { text-align:center; }
+    .plus { width:42px; height:42px; margin:0 auto 11px; display:grid; place-items:center; border-radius:50%; background:#fff; box-shadow:var(--shadow); font-size:24px; }
+    .empty { padding:60px 20px; text-align:center; color:var(--muted); }
+    .modal-backdrop { position:fixed; inset:0; z-index:50; display:none; place-items:center; padding:20px; background:rgba(18,18,32,.48); backdrop-filter:blur(4px); }
+    .modal-backdrop.open { display:grid; }
+    .modal { width:min(560px,100%); max-height:92vh; overflow:auto; border-radius:18px; background:#fff; box-shadow:0 28px 80px rgba(17,17,35,.28); }
+    .modal-head { display:flex; align-items:center; padding:20px 22px; border-bottom:1px solid var(--line); }
+    .modal-head h2 { margin:0; font-size:18px; }
+    .modal-head button { margin-left:auto; width:34px; height:34px; border:0; border-radius:9px; background:#f5f5f8; cursor:pointer; }
+    .modal-body { padding:22px; }
+    .notice { margin-bottom:18px; padding:11px 13px; border-radius:10px; color:#6d5c2e; background:#fff7df; font-size:12px; line-height:1.6; }
+    .field { margin-bottom:16px; }
+    .field label { display:block; margin-bottom:7px; color:#5f6374; font-size:12px; font-weight:700; }
+    .field input, .field select { width:100%; height:42px; border:1px solid #dedfe7; border-radius:10px; padding:0 12px; outline:none; background:#fff; }
+    .field input:focus, .field select:focus { border-color:#9d91e9; box-shadow:0 0 0 3px #f0edff; }
+    .row { display:grid; grid-template-columns:1fr 1fr; gap:13px; }
+    .switch-row { display:flex; align-items:center; justify-content:space-between; gap:15px; padding:13px 0; border-top:1px solid #f0f0f4; }
+    .switch-row strong { display:block; font-size:13px; }
+    .switch-row small { color:#8b8f9f; }
+    .switch { position:relative; width:43px; height:24px; flex:0 0 auto; }
+    .switch input { opacity:0; width:0; height:0; }
+    .slider { position:absolute; inset:0; border-radius:999px; background:#d9dbe3; cursor:pointer; transition:.2s; }
+    .slider:before { content:""; position:absolute; width:18px; height:18px; left:3px; top:3px; border-radius:50%; background:#fff; box-shadow:0 2px 5px rgba(0,0,0,.18); transition:.2s; }
+    .switch input:checked + .slider { background:var(--violet); }
+    .switch input:checked + .slider:before { transform:translateX(19px); }
+    .modal-foot { display:flex; justify-content:flex-end; gap:9px; padding:16px 22px 21px; border-top:1px solid var(--line); }
+    .toast { position:fixed; right:24px; bottom:24px; z-index:80; max-width:360px; padding:12px 15px; color:#fff; background:#303244; border-radius:10px; box-shadow:0 14px 38px rgba(20,20,35,.24); transform:translateY(22px); opacity:0; pointer-events:none; transition:.2s; font-size:13px; }
+    .toast.show { transform:translateY(0); opacity:1; }
+    @media (max-width:900px) {
+      .app { grid-template-columns:82px minmax(0,1fr); }
+      .sidebar { padding:16px 8px; }
+      .brand { justify-content:center; padding:0 0 17px; }
+      .brand-copy, .side-label, .side-item span:not(.side-icon), .side-count, .sidebar-note { display:none; }
+      .side-item { justify-content:center; padding:11px 0; }
+      .topbar { padding:0 18px; }
+      .content { padding:26px 18px 45px; }
+      .search { width:min(260px,38vw); }
+    }
+    @media (max-width:640px) {
+      .app { display:block; }
+      .sidebar { position:relative; width:100%; height:auto; padding:10px 14px; display:flex; align-items:center; overflow-x:auto; }
+      .brand { border:0; padding:0 12px 0 0; }
+      .brand-mark { width:34px; height:34px; }
+      .side-nav { display:flex; }
+      .side-item { min-width:42px; }
+      .topbar { height:auto; min-height:64px; flex-wrap:wrap; padding:12px 14px; }
+      .breadcrumb, .avatar { display:none; }
+      .top-actions { width:100%; }
+      .search { flex:1; width:auto; }
+      .btn.mobile-hide { display:none; }
+      .content { padding:23px 14px 40px; }
+      .headline { display:block; }
+      .summary { margin-top:15px; justify-content:flex-start; }
+      .tabs-row { align-items:flex-start; }
+      .sort-wrap { width:100%; margin-left:0; }
+      .cards { grid-template-columns:1fr; }
+      .row { grid-template-columns:1fr; gap:0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">A3</div>
+        <div class="brand-copy"><strong>亚马逊运营三部</strong><span>数据看板中心</span></div>
+      </div>
+      <div class="side-label">看板目录</div>
+      <nav class="side-nav" id="sideNav"></nav>
+      <div class="sidebar-note">每张看板可独立配置月度、半月或手动更新；云端发布后再接入无人值守执行与钉钉通知。</div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="breadcrumb">看板目录 / <b id="crumb">全部看板</b></div>
+        <div class="top-actions">
+          <label class="search" aria-label="搜索看板">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+            <input id="searchInput" placeholder="搜索看板、负责人…">
+          </label>
+          <button class="btn mobile-hide" id="planCenter">计划中心</button>
+          <button class="btn primary" id="addDashboard">＋ 添加看板</button>
+          <div class="avatar">SU</div>
+        </div>
+      </header>
+
+      <div class="content">
+        <section class="headline">
+          <div>
+            <h1><span id="pageTitle">全部看板</span><span class="count-pill" id="countPill">0 个看板</span></h1>
+            <div class="subline">集中查看、配置并追踪所有运营数据看板</div>
+          </div>
+          <div class="summary">
+            <span class="summary-chip"><b id="readyCount">0</b>已上线</span>
+            <span class="summary-chip"><b id="scheduledCount">0</b>自动更新</span>
+            <span class="summary-chip"><b id="notifyCount">0</b>钉钉通知</span>
+          </div>
+        </section>
+
+        <div class="tabs-row" id="tabsRow">
+          <div class="sort-wrap">
+            <select id="sortSelect" aria-label="排序">
+              <option value="updated">最近更新</option>
+              <option value="name">名称排序</option>
+              <option value="schedule">更新计划</option>
+            </select>
+            <button class="view-btn active" data-view="grid" aria-label="网格视图">▦</button>
+            <button class="view-btn" data-view="list" aria-label="列表视图">☷</button>
+          </div>
+        </div>
+
+        <section class="cards" id="cards"></section>
+      </div>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="scheduleModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal">
+      <div class="modal-head"><h2 id="modalTitle">更新计划</h2><button id="closeModal" aria-label="关闭">×</button></div>
+      <form id="scheduleForm">
+        <div class="modal-body">
+          <div class="notice">当前为前端配置原型，保存后仅写入本浏览器。部署到云端后，计划会同步到无人值守任务，并在成功或失败时按配置发送钉钉通知。</div>
+          <input type="hidden" id="dashboardId">
+          <div class="switch-row">
+            <div><strong>启用自动更新</strong><small>关闭时仅允许手动刷新</small></div>
+            <label class="switch"><input type="checkbox" id="scheduleEnabled"><span class="slider"></span></label>
+          </div>
+          <div class="field"><label for="cadence">更新频率</label><select id="cadence"><option value="monthly">每月一次</option><option value="semimonthly">每月两次</option><option value="manual">仅手动</option></select></div>
+          <div class="row">
+            <div class="field"><label for="dayOne">第一次更新日</label><input id="dayOne" type="number" min="1" max="28" value="5"></div>
+            <div class="field" id="secondDayField"><label for="dayTwo">第二次更新日</label><input id="dayTwo" type="number" min="1" max="28" value="20"></div>
+          </div>
+          <div class="row">
+            <div class="field"><label for="runTime">执行时间</label><input id="runTime" type="time" value="09:00"></div>
+            <div class="field"><label for="timezone">时区</label><select id="timezone"><option value="Asia/Shanghai">Asia/Shanghai</option></select></div>
+          </div>
+          <div class="switch-row">
+            <div><strong>钉钉通知</strong><small>更新成功、失败或需要人工处理时通知</small></div>
+            <label class="switch"><input type="checkbox" id="dingTalk"><span class="slider"></span></label>
+          </div>
+        </div>
+        <div class="modal-foot"><button class="btn" type="button" id="cancelModal">取消</button><button class="btn primary" type="submit">保存计划</button></div>
+      </form>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+
+  <script>
+    let categories = ["全部看板","广告看板","库存看板","运营复盘","产品管理","Skill沉淀","其他看板"];
+    const icons = {"全部看板":"⌂","广告看板":"◎","库存看板":"◇","运营复盘":"▥","产品管理":"▱","Skill沉淀":"▣","其他看板":"✦"};
+    const fallbackDashboards = [{
+      id:"monthly-review", title:"运营月度复盘", description:"经营、广告、退款与库存一体化复盘",
+      category:"运营复盘", owner:"周锋润", version:"V1.0", type:"HTML 看板", period:"2026年7月",
+      updatedAt:"2026-09-28T13:54:05+08:00", url:"dashboards/monthly-review/index.html", status:"ready",
+      schedule:{enabled:false,cadence:"monthly",days:[5],time:"09:00",timezone:"Asia/Shanghai",dingTalk:false}
+    }];
+    const state = { dashboards:[], active:"全部看板", query:"", sort:"updated", view:"grid", editing:null };
+    const $ = selector => document.querySelector(selector);
+
+    function escapeHtml(value="") { return String(value).replace(/[&<>'"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c])); }
+    function loadOverrides() { try { return JSON.parse(localStorage.getItem("dashboardScheduleOverrides") || "{}"); } catch { return {}; } }
+    function applyOverrides(items) { const overrides=loadOverrides(); return items.map(item => overrides[item.id] ? {...item,schedule:{...item.schedule,...overrides[item.id]}} : item); }
+    function showToast(message) { const el=$("#toast"); el.textContent=message; el.classList.add("show"); clearTimeout(showToast.timer); showToast.timer=setTimeout(()=>el.classList.remove("show"),2600); }
+    function initials(name="") { return name.slice(-2).toUpperCase(); }
+    function scheduleText(schedule) {
+      if (!schedule?.enabled || schedule.cadence==="manual") return "未启用自动更新";
+      const time=schedule.time || "09:00";
+      if (schedule.cadence==="semimonthly") return `每月 ${schedule.days?.[0]||5}、${schedule.days?.[1]||20} 日 ${time}`;
+      return `每月 ${schedule.days?.[0]||5} 日 ${time}`;
+    }
+    function dateText(value) { const d=new Date(value); return Number.isNaN(d.valueOf()) ? "—" : `${d.getMonth()+1}/${d.getDate()}`; }
+    function iconSvg() { return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m4 7 8-4 8 4-8 4-8-4Z"/><path d="m4 12 8 4 8-4M4 17l8 4 8-4"/></svg>`; }
+
+    function filteredItems() {
+      let items=state.dashboards.filter(item => state.active==="全部看板" || item.category===state.active);
+      const q=state.query.trim().toLowerCase();
+      if (q) items=items.filter(item => [item.title,item.description,item.owner,item.category].join(" ").toLowerCase().includes(q));
+      return items.sort((a,b) => state.sort==="name" ? a.title.localeCompare(b.title,"zh-CN") : state.sort==="schedule" ? Number(b.schedule?.enabled)-Number(a.schedule?.enabled) : new Date(b.updatedAt)-new Date(a.updatedAt));
+    }
+    function renderNav() {
+      $("#sideNav").innerHTML=categories.map(name => {
+        const count=name==="全部看板" ? state.dashboards.length : state.dashboards.filter(x=>x.category===name).length;
+        return `<button class="side-item ${state.active===name?"active":""}" data-category="${name}"><span class="side-icon">${icons[name]||"▣"}</span><span>${name}</span><span class="side-count">${count}</span></button>`;
+      }).join("");
+      $("#sideNav").querySelectorAll("button").forEach(btn=>btn.onclick=()=>{state.active=btn.dataset.category; render();});
+    }
+    function renderTabs() {
+      const tabs=categories.map(name=>`<button class="tab ${state.active===name?"active":""}" data-category="${name}">${name}</button>`).join("");
+      $("#tabsRow").insertAdjacentHTML("afterbegin",tabs);
+      $("#tabsRow").querySelectorAll(".tab").forEach(btn=>btn.onclick=()=>{state.active=btn.dataset.category; render();});
+    }
+    function renderCards() {
+      const items=filteredItems();
+      $("#countPill").textContent=`${items.length} 个看板`;
+      $("#cards").className=`cards ${state.view}`;
+      if (!items.length) { $("#cards").innerHTML=`<div class="empty">没有找到匹配的看板</div>`; return; }
+      $("#cards").innerHTML=items.map(item=>{
+        const active=item.schedule?.enabled && item.schedule.cadence!=="manual";
+        return `<article class="dashboard-card">
+          <div class="card-head"><div class="card-icon">${iconSvg()}</div><div class="card-title"><h2>${escapeHtml(item.title)}</h2><div class="badges"><span class="badge version">◇ ${escapeHtml(item.version)}</span><span class="badge ready">已上线</span></div></div></div>
+          <div class="card-desc">${escapeHtml(item.description)}</div>
+          <div class="meta"><span>▣ ${escapeHtml(item.category)}</span><span>▤ ${escapeHtml(item.type)}</span><span>◷ ${escapeHtml(item.period)}</span><span>更新 ${dateText(item.updatedAt)}</span></div>
+          <div class="schedule-box"><span class="schedule-label">更新计划</span><span class="schedule-value">${scheduleText(item.schedule)}</span><span class="schedule-state ${active?"active":""}"><i class="dot"></i>${active?"运行中":"待配置"}</span></div>
+          <div class="card-foot"><div class="owner"><span class="mini">${escapeHtml(initials(item.owner))}</span><span>${escapeHtml(item.owner)}</span></div><div class="card-actions"><button class="icon-btn edit-schedule" data-id="${item.id}" title="编辑更新计划">◷</button><a class="icon-btn open-btn" href="${escapeHtml(item.url)}" title="打开看板">↗</a></div></div>
+        </article>`;
+      }).join("") + `<button class="empty-card" id="emptyAdd"><span class="empty-inner"><span class="plus">＋</span><b>添加下一个数据看板</b><br><small>接入技能与数据源后发布</small></span></button>`;
+      document.querySelectorAll(".edit-schedule").forEach(btn=>btn.onclick=()=>openSchedule(btn.dataset.id));
+      $("#emptyAdd").onclick=()=>showToast("下一步可继续接入新的看板技能与数据源");
+    }
+    function render() {
+      document.querySelectorAll("#tabsRow .tab").forEach(el=>el.remove());
+      renderNav(); renderTabs(); renderCards();
+      $("#pageTitle").textContent=state.active;
+      $("#crumb").textContent=state.active;
+      $("#readyCount").textContent=state.dashboards.filter(x=>x.status==="ready").length;
+      $("#scheduledCount").textContent=state.dashboards.filter(x=>x.schedule?.enabled && x.schedule.cadence!=="manual").length;
+      $("#notifyCount").textContent=state.dashboards.filter(x=>x.schedule?.dingTalk).length;
+    }
+    function openSchedule(id) {
+      const item=state.dashboards.find(x=>x.id===id) || state.dashboards[0]; if(!item) return;
+      state.editing=item.id; $("#modalTitle").textContent=`${item.title} · 更新计划`; $("#dashboardId").value=item.id;
+      $("#scheduleEnabled").checked=Boolean(item.schedule?.enabled); $("#cadence").value=item.schedule?.cadence||"monthly";
+      $("#dayOne").value=item.schedule?.days?.[0]||5; $("#dayTwo").value=item.schedule?.days?.[1]||20; $("#runTime").value=item.schedule?.time||"09:00";
+      $("#dingTalk").checked=Boolean(item.schedule?.dingTalk); updateCadenceFields(); $("#scheduleModal").classList.add("open");
+    }
+    function closeSchedule() { $("#scheduleModal").classList.remove("open"); }
+    function updateCadenceFields() { const semi=$("#cadence").value==="semimonthly"; $("#secondDayField").style.display=semi?"block":"none"; const manual=$("#cadence").value==="manual"; $("#dayOne").disabled=manual; $("#runTime").disabled=manual; }
+    function saveSchedule(event) {
+      event.preventDefault(); const item=state.dashboards.find(x=>x.id===state.editing); if(!item) return;
+      const cadence=$("#cadence").value; const days=[Number($("#dayOne").value)]; if(cadence==="semimonthly") days.push(Number($("#dayTwo").value));
+      const schedule={enabled:$("#scheduleEnabled").checked && cadence!=="manual",cadence,days,time:$("#runTime").value,timezone:"Asia/Shanghai",dingTalk:$("#dingTalk").checked};
+      const overrides=loadOverrides(); overrides[item.id]=schedule; localStorage.setItem("dashboardScheduleOverrides",JSON.stringify(overrides)); item.schedule={...item.schedule,...schedule}; closeSchedule(); render(); showToast("更新计划已保存到当前浏览器");
+    }
+
+    async function init() {
+      try { const response=await fetch("dashboard-registry.json",{cache:"no-store"}); if(!response.ok) throw new Error("registry"); const data=await response.json(); if(Array.isArray(data.categories)&&data.categories.length) categories=data.categories; state.dashboards=applyOverrides(data.dashboards||[]); }
+      catch { state.dashboards=applyOverrides(fallbackDashboards); setTimeout(()=>showToast("目录服务暂时不可用，已加载内置看板目录"),120); }
+      $("#searchInput").addEventListener("input",e=>{state.query=e.target.value; renderCards();});
+      $("#sortSelect").addEventListener("change",e=>{state.sort=e.target.value; renderCards();});
+      document.querySelectorAll(".view-btn").forEach(btn=>btn.onclick=()=>{state.view=btn.dataset.view; document.querySelectorAll(".view-btn").forEach(x=>x.classList.toggle("active",x===btn)); renderCards();});
+      $("#planCenter").onclick=()=>openSchedule(state.dashboards[0]?.id); $("#addDashboard").onclick=()=>showToast("告诉 Codex 新看板名称、技能和更新频率即可接入");
+      $("#closeModal").onclick=closeSchedule; $("#cancelModal").onclick=closeSchedule; $("#scheduleModal").onclick=e=>{if(e.target===$("#scheduleModal")) closeSchedule();};
+      $("#cadence").onchange=updateCadenceFields; $("#scheduleForm").onsubmit=saveSchedule; render();
+    }
+    init();
+  </script>
+</body>
+</html>
