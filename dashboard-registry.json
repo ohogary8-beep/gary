@@ -28,10 +28,10 @@
       "url": "dashboards/monthly-review/index.html",
       "status": "ready",
       "schedule": {
-        "enabled": false,
+        "enabled": true,
         "cadence": "monthly",
-        "days": [5],
-        "time": "09:00",
+        "days": [28],
+        "time": "14:16",
         "timezone": "Asia/Shanghai",
         "dingTalk": false
       }
